@@ -1,0 +1,61 @@
+{
+    "nomeDellaRuota": "Gira Gelato",
+    "numeroSpicchi": 10,
+    "tema": "Gelato",
+    "numeroVinciteGiornaliere": 1,
+    "numeroGiocate": 1,
+    "premi": [
+        {
+            "premio": "Cono Gelato",
+            "vincita": true,
+            "valore": 100
+        },
+        {
+            "premio": "Foglia Secca",
+            "vincita": false,
+            "valore": 0
+        },
+        {
+            "premio": "Panna Montata",
+            "vincita": true,
+            "valore": 50
+        },
+        {
+            "premio": "Cono rotto",
+            "vincita": false,
+            "valore": 0
+        },
+        {
+            "premio": "Pinguinatura",
+            "vincita": true,
+            "valore": 200
+        },
+        {
+            "premio": "Sasso Comune",
+            "vincita": false,
+            "valore": 0
+        },
+        {
+            "premio": "Bisquit",
+            "vincita": true,
+            "valore": 150
+        },
+        {
+            "premio": "Pigna",
+            "vincita": false,
+            "valore": 0
+        },
+        {
+            "premio": "Bacio",
+            "vincita": false,
+            "valore": 0
+        },
+        {
+            "premio": "100 punti vip",
+            "vincita": true,
+            "valore": 100
+        }
+    ],
+    "active": true,
+    "adminEmail": ""
+}

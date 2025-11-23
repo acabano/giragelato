@@ -1,0 +1,54 @@
+[
+    {
+        "user": "testuser",
+        "password": "password123",
+        "history": []
+    },
+    {
+        "user": "player2",
+        "password": "password",
+        "history": []
+    },
+    {
+        "user": "admin",
+        "password": "adminpassword",
+        "role": "admin",
+        "history": []
+    },
+    {
+        "user": "newuser",
+        "password": "password",
+        "role": "user",
+        "history": []
+    },
+    {
+        "user": "andreac",
+        "password": "ksbg3dua",
+        "role": "user",
+        "history": []
+    },
+    {
+        "user": "pippob",
+        "password": "pippob",
+        "role": "user",
+        "history": []
+    },
+    {
+        "user": "mikeb",
+        "password": "mikeb",
+        "role": "user",
+        "history": []
+    },
+    {
+        "user": "gerris",
+        "password": "gerris",
+        "role": "user",
+        "history": []
+    },
+    {
+        "user": "ilariam",
+        "password": "g7y32rqm",
+        "role": "user",
+        "history": []
+    }
+]

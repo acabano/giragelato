@@ -1,0 +1,35 @@
+[
+    {
+        "id": "1763828983073",
+        "nome": "Andrea",
+        "cognome": "Cabano",
+        "email": "acabano@outlook.com",
+        "telefono": "3420612940",
+        "citta": "Luni",
+        "creato": true,
+        "dataRichiesta": "2025-11-22T16:29:43.073Z",
+        "username": "andreac"
+    },
+    {
+        "id": "1763830036600",
+        "nome": "Pippo",
+        "cognome": "Baudo",
+        "email": "cabanoandrea71@gmail.com",
+        "telefono": "3420612940",
+        "citta": "Luni",
+        "creato": true,
+        "dataRichiesta": "2025-11-22T16:47:16.600Z",
+        "username": "pippob"
+    },
+    {
+        "id": "1763830765456",
+        "nome": "Ilaria",
+        "cognome": "Martello",
+        "email": "acabano@outlook.com",
+        "telefono": "213",
+        "citta": "Luni",
+        "creato": true,
+        "dataRichiesta": "2025-11-22T16:59:25.456Z",
+        "username": "ilariam"
+    }
+]

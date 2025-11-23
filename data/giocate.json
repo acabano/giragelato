@@ -1,0 +1,61 @@
+[
+    {
+        "user": "andreac",
+        "data": "2025-11-22",
+        "ora": "17:52:23",
+        "risultato": "Sasso Comune",
+        "vincita": false
+    },
+    {
+        "user": "gerris",
+        "data": "2025-11-22",
+        "ora": "17:58:17",
+        "risultato": "Foglia Secca",
+        "vincita": false
+    },
+    {
+        "user": "pippob",
+        "data": "2025-11-22",
+        "ora": "17:58:35",
+        "risultato": "Cono rotto",
+        "vincita": false
+    },
+    {
+        "user": "ilariam",
+        "data": "2025-11-22",
+        "ora": "18:03:17",
+        "risultato": "Pinguinatura",
+        "vincita": true,
+        "riscosso": true
+    },
+    {
+        "user": "testuser",
+        "data": "2025-11-22",
+        "ora": "18:11:40",
+        "risultato": "Cono rotto",
+        "vincita": false
+    },
+    {
+        "user": "testuser",
+        "data": "2025-11-22",
+        "ora": "18:11:47",
+        "risultato": "Cono rotto",
+        "vincita": false
+    },
+    {
+        "user": "testuser",
+        "data": "2025-11-22",
+        "ora": "18:11:54",
+        "risultato": "100 punti vip",
+        "vincita": true,
+        "riscosso": false
+    },
+    {
+        "user": "testuser",
+        "data": "2025-11-22",
+        "ora": "18:13:12",
+        "risultato": "Bisquit",
+        "vincita": true,
+        "riscosso": false
+    }
+]
