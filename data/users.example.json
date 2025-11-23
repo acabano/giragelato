@@ -1,0 +1,13 @@
+[
+    {
+        "user": "testuser",
+        "password": "password123",
+        "history": []
+    },
+    {
+        "user": "admin",
+        "password": "adminpassword",
+        "role": "admin",
+        "history": []
+    }
+]
