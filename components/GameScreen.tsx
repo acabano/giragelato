@@ -35,7 +35,7 @@ const GameScreen: React.FC<GameScreenProps> = ({ user, onLogout }) => {
         try {
             // Load current users
             const timestamp = new Date().getTime();
-            const response = await fetch(`${import.meta.env.BASE_URL}data/users.json?t=${timestamp}`, {
+            const response = await fetch(`${import.meta.env.BASE_URL}api/get-users.php?t=${timestamp}`, {
                 headers: { 'Cache-Control': 'no-cache' }
             });
             if (!response.ok) throw new Error('Failed to load users');
@@ -265,24 +265,67 @@ const GameScreen: React.FC<GameScreenProps> = ({ user, onLogout }) => {
             backgroundSize: '20px 20px'
         };
 
+    const [isMenuOpen, setIsMenuOpen] = useState(false);
+    const menuRef = useRef<HTMLDivElement>(null);
+
+    // Close menu when clicking outside
+    useEffect(() => {
+        const handleClickOutside = (event: MouseEvent) => {
+            if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
+                setIsMenuOpen(false);
+            }
+        };
+        document.addEventListener('mousedown', handleClickOutside);
+        return () => {
+            document.removeEventListener('mousedown', handleClickOutside);
+        };
+    }, []);
+
     return (
         <div className="bg-gray-900 min-h-screen flex flex-col items-center justify-center text-white p-4 font-sans" style={backgroundStyle}>
-            <div className="absolute top-4 right-4 text-right">
-                <span className="text-gray-300">Welcome, {user.user}!</span>
-                <div className="flex flex-col items-end gap-2 mt-2">
-                    <button
-                        onClick={onLogout}
-                        className="px-3 py-1 text-sm bg-red-600 rounded-md hover:bg-red-700 transition-colors"
-                    >
-                        Logout
-                    </button>
-                    <button
-                        onClick={() => setShowPasswordModal(true)}
-                        className="px-3 py-1 text-sm bg-blue-600 rounded-md hover:bg-blue-700 transition-colors"
-                    >
-                        Cambia Password
-                    </button>
-                </div>
+            {/* Hamburger Menu */}
+            <div className="absolute top-4 right-4 z-50" ref={menuRef}>
+                <button
+                    onClick={() => setIsMenuOpen(!isMenuOpen)}
+                    className="p-2 bg-black/40 hover:bg-black/60 rounded-full transition-colors backdrop-blur-sm"
+                >
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16m-7 6h7" />
+                    </svg>
+                </button>
+
+                {isMenuOpen && (
+                    <div className="absolute right-0 mt-2 w-48 bg-gray-800 rounded-lg shadow-xl border border-gray-700 overflow-hidden animate-fade-in-down">
+                        <div className="px-4 py-3 border-b border-gray-700">
+                            <p className="text-sm text-gray-400">Logged in as</p>
+                            <p className="text-sm font-bold text-white truncate">{user.user}</p>
+                        </div>
+                        <button
+                            onClick={() => {
+                                setIsMenuOpen(false);
+                                setShowPasswordModal(true);
+                            }}
+                            className="w-full text-left px-4 py-3 text-sm text-gray-200 hover:bg-gray-700 hover:text-white transition-colors flex items-center gap-2"
+                        >
+                            <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z" />
+                            </svg>
+                            Cambia Password
+                        </button>
+                        <button
+                            onClick={() => {
+                                setIsMenuOpen(false);
+                                onLogout();
+                            }}
+                            className="w-full text-left px-4 py-3 text-sm text-red-400 hover:bg-red-900/30 hover:text-red-300 transition-colors flex items-center gap-2 border-t border-gray-700"
+                        >
+                            <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+                            </svg>
+                            Logout
+                        </button>
+                    </div>
+                )}
             </div>
 
             {/* Change Password Modal */}

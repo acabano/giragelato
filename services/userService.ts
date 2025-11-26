@@ -13,7 +13,7 @@ export async function loadUsers(forceReload: boolean = false): Promise<void> {
     if (allUsers.length > 0 && !forceReload) return;
     try {
         const timestamp = new Date().getTime();
-        const response = await fetch(`${import.meta.env.BASE_URL}data/users.json?t=${timestamp}`, {
+        const response = await fetch(`${import.meta.env.BASE_URL}api/get-users.php?t=${timestamp}`, {
             headers: {
                 'Cache-Control': 'no-cache, no-store, must-revalidate',
                 'Pragma': 'no-cache',
@@ -44,7 +44,7 @@ export async function reloadUsers(): Promise<void> {
 export async function login(username: string, password_provided: string): Promise<User | null> {
     // Always reload users before login to ensure we have the latest data
     await loadUsers(true);
-    
+
     const userAccount = allUsers.find(u => u.user === username && u.password === password_provided);
     if (userAccount) {
         // Create a user object without the password to store in the session

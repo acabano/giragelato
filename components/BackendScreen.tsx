@@ -39,7 +39,8 @@ const BackendScreen: React.FC<BackendScreenProps> = ({ onLogout }) => {
         ],
         active: true,
         adminEmail: '',
-        winningPercentage: 5
+        winningPercentage: 5,
+        emailProvider: 'emailjs'
     });
 
     const getDefaultUsers = (): User[] => [
@@ -107,7 +108,7 @@ const BackendScreen: React.FC<BackendScreenProps> = ({ onLogout }) => {
                     cache: 'no-store',
                     headers: { 'Cache-Control': 'no-cache' }
                 }),
-                fetch(`${import.meta.env.BASE_URL}data/users.json${cacheBuster}`, {
+                fetch(`${import.meta.env.BASE_URL}api/get-users.php${cacheBuster}`, {
                     cache: 'no-store',
                     headers: { 'Cache-Control': 'no-cache' }
                 }),
@@ -308,8 +309,37 @@ const BackendScreen: React.FC<BackendScreenProps> = ({ onLogout }) => {
                 })
             ]);
 
-            // Send email with credentials using EmailJS
-            try {
+            // Send email
+            if (config?.emailProvider === 'smtp' && config.smtpConfig) {
+                // Send via SMTP API
+                const emailResponse = await fetch(`${import.meta.env.BASE_URL}api/send-email.php`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        smtpConfig: config.smtpConfig,
+                        to: request.email,
+                        subject: `Welcome to ${config.nomeDellaRuota}!`,
+                        body: `
+                            <h1>Welcome ${request.nome}!</h1>
+                            <p>Your account has been created.</p>
+                            <p><strong>Username:</strong> ${username}</p>
+                            <p><strong>Password:</strong> ${password}</p>
+                            <p>Good luck!</p>
+                        `
+                    })
+                });
+
+                if (emailResponse.ok) {
+                    setMessage({
+                        text: `✅ User created! Username: ${username}, Password: ${password}. Email sent via SMTP to ${request.email}`,
+                        type: 'success'
+                    });
+                } else {
+                    throw new Error('SMTP Email failed');
+                }
+
+            } else {
+                // Send via EmailJS (Fallback or Default)
                 await emailjs.send(
                     EMAILJS_SERVICE_ID,
                     EMAILJS_TEMPLATE_ID,
@@ -324,21 +354,19 @@ const BackendScreen: React.FC<BackendScreenProps> = ({ onLogout }) => {
                     EMAILJS_PUBLIC_KEY
                 );
                 setMessage({
-                    text: `✅ User created! Username: ${username}, Password: ${password}. Email sent to ${request.email}`,
-                    type: 'success'
-                });
-            } catch (emailError) {
-                console.error('Email sending error:', emailError);
-                setMessage({
-                    text: `⚠️ User created! Username: ${username}, Password: ${password}. WARNING: Email couldn't be sent to ${request.email}`,
+                    text: `✅ User created! Username: ${username}, Password: ${password}. Email sent via EmailJS to ${request.email}`,
                     type: 'success'
                 });
             }
+
             // Reload data from server to ensure we have the latest version
             await fetchData();
         } catch (error) {
             console.error(error);
-            setMessage({ text: 'Error creating user', type: 'error' });
+            setMessage({
+                text: `⚠️ User created! Username: ${username}, Password: ${password}. WARNING: Email couldn't be sent.`,
+                type: 'success'
+            });
         }
     };
 
@@ -580,6 +608,102 @@ const BackendScreen: React.FC<BackendScreenProps> = ({ onLogout }) => {
                                         />
                                     </div>
                                 </div>
+                                <div className="border-t border-gray-700 pt-4 mt-4">
+                                    <h3 className="text-lg font-semibold text-purple-300 mb-3">Email Configuration</h3>
+
+                                    <div className="mb-4">
+                                        <label className="block text-sm text-gray-400 mb-1">Email Provider</label>
+                                        <select
+                                            value={config.emailProvider || 'emailjs'}
+                                            onChange={e => setConfig({ ...config, emailProvider: e.target.value as 'emailjs' | 'smtp' })}
+                                            className="w-full bg-gray-700 border border-gray-600 rounded p-2"
+                                        >
+                                            <option value="emailjs">EmailJS (Client-side)</option>
+                                            <option value="smtp">SMTP (Server-side)</option>
+                                        </select>
+                                    </div>
+
+                                    {config.emailProvider === 'smtp' && (
+                                        <div className="space-y-3 pl-4 border-l-2 border-purple-500">
+                                            <div className="grid grid-cols-2 gap-4">
+                                                <div>
+                                                    <label className="block text-sm text-gray-400 mb-1">SMTP Host</label>
+                                                    <input
+                                                        type="text"
+                                                        value={config.smtpConfig?.host || ''}
+                                                        onChange={e => setConfig({ ...config, smtpConfig: { ...config.smtpConfig!, host: e.target.value } })}
+                                                        className="w-full bg-gray-700 border border-gray-600 rounded p-2"
+                                                        placeholder="smtp.example.com"
+                                                    />
+                                                </div>
+                                                <div>
+                                                    <label className="block text-sm text-gray-400 mb-1">Port</label>
+                                                    <input
+                                                        type="number"
+                                                        value={config.smtpConfig?.port || 465}
+                                                        onChange={e => setConfig({ ...config, smtpConfig: { ...config.smtpConfig!, port: parseInt(e.target.value) } })}
+                                                        className="w-full bg-gray-700 border border-gray-600 rounded p-2"
+                                                    />
+                                                </div>
+                                            </div>
+
+                                            <div className="flex items-center gap-2">
+                                                <input
+                                                    type="checkbox"
+                                                    id="smtpSecure"
+                                                    checked={config.smtpConfig?.secure ?? true}
+                                                    onChange={e => setConfig({ ...config, smtpConfig: { ...config.smtpConfig!, secure: e.target.checked } })}
+                                                    className="w-4 h-4 accent-purple-500"
+                                                />
+                                                <label htmlFor="smtpSecure" className="text-sm text-gray-300 cursor-pointer">
+                                                    Use Secure Connection (SSL/TLS)
+                                                </label>
+                                            </div>
+
+                                            <div className="grid grid-cols-2 gap-4">
+                                                <div>
+                                                    <label className="block text-sm text-gray-400 mb-1">SMTP User</label>
+                                                    <input
+                                                        type="text"
+                                                        value={config.smtpConfig?.user || ''}
+                                                        onChange={e => setConfig({ ...config, smtpConfig: { ...config.smtpConfig!, user: e.target.value } })}
+                                                        className="w-full bg-gray-700 border border-gray-600 rounded p-2"
+                                                    />
+                                                </div>
+                                                <div>
+                                                    <label className="block text-sm text-gray-400 mb-1">SMTP Password</label>
+                                                    <input
+                                                        type="password"
+                                                        value={config.smtpConfig?.pass || ''}
+                                                        onChange={e => setConfig({ ...config, smtpConfig: { ...config.smtpConfig!, pass: e.target.value } })}
+                                                        className="w-full bg-gray-700 border border-gray-600 rounded p-2"
+                                                    />
+                                                </div>
+                                            </div>
+
+                                            <div className="grid grid-cols-2 gap-4">
+                                                <div>
+                                                    <label className="block text-sm text-gray-400 mb-1">From Name</label>
+                                                    <input
+                                                        type="text"
+                                                        value={config.smtpConfig?.fromName || ''}
+                                                        onChange={e => setConfig({ ...config, smtpConfig: { ...config.smtpConfig!, fromName: e.target.value } })}
+                                                        className="w-full bg-gray-700 border border-gray-600 rounded p-2"
+                                                    />
+                                                </div>
+                                                <div>
+                                                    <label className="block text-sm text-gray-400 mb-1">From Email</label>
+                                                    <input
+                                                        type="email"
+                                                        value={config.smtpConfig?.fromEmail || ''}
+                                                        onChange={e => setConfig({ ...config, smtpConfig: { ...config.smtpConfig!, fromEmail: e.target.value } })}
+                                                        className="w-full bg-gray-700 border border-gray-600 rounded p-2"
+                                                    />
+                                                </div>
+                                            </div>
+                                        </div>
+                                    )}
+                                </div>
                             </div>
 
                             <div className="bg-gray-800 p-6 rounded-lg">
@@ -820,9 +944,9 @@ const BackendScreen: React.FC<BackendScreenProps> = ({ onLogout }) => {
                 ) : (
                     <div className="bg-gray-800 p-6 rounded-lg">
                         <div className="flex justify-between items-center mb-6">
-                            <h2 className="text-xl font-semibold text-blue-300">Registration Requests</h2>
+                            <h2 className="text-xl font-semibold text-blue-300">Richieste di Registrazione</h2>
                             <div className="text-gray-400 text-sm">
-                                Total: {requests.length} | Pending: {requests.filter(r => !r.creato).length}
+                                Pending: {pendingRequestsCount}
                             </div>
                         </div>
 
@@ -830,67 +954,62 @@ const BackendScreen: React.FC<BackendScreenProps> = ({ onLogout }) => {
                             <table className="w-full text-left border-collapse">
                                 <thead>
                                     <tr className="text-gray-400 border-b border-gray-700">
+                                        <th className="p-2">Data</th>
                                         <th className="p-2">Nome</th>
-                                        <th className="p-2">Cognome</th>
                                         <th className="p-2">Email</th>
-                                        <th className="p-2">Telefono</th>
                                         <th className="p-2">Città</th>
-                                        <th className="p-2">Data Richiesta</th>
-                                        <th className="p-2">Status</th>
+                                        <th className="p-2">Stato</th>
                                         <th className="p-2">Actions</th>
                                     </tr>
                                 </thead>
                                 <tbody>
                                     {requests.length === 0 ? (
                                         <tr>
-                                            <td colSpan={8} className="p-4 text-center text-gray-500">No registration requests</td>
+                                            <td colSpan={6} className="p-4 text-center text-gray-500">Nessuna richiesta presente</td>
                                         </tr>
                                     ) : (
-                                        requests.map((request, index) => {
-                                            const isPending = !request.creato;
-                                            return (
-                                                <tr key={request.id || index} className={`border-b border-gray-700 hover:bg-gray-750 ${isPending ? 'bg-yellow-900 bg-opacity-20' : ''}`}>
-                                                    <td className="p-2">{request.nome}</td>
-                                                    <td className="p-2">{request.cognome}</td>
-                                                    <td className="p-2">{request.email}</td>
-                                                    <td className="p-2">{request.telefono}</td>
-                                                    <td className="p-2">{request.citta}</td>
-                                                    <td className="p-2 text-sm text-gray-400">
-                                                        {new Date(request.dataRichiesta).toLocaleString('it-IT')}
-                                                    </td>
-                                                    <td className="p-2">
-                                                        {request.creato ? (
-                                                            <span className="text-green-400 font-semibold">
-                                                                ✓ Creato {request.username && `(${request.username})`}
-                                                            </span>
-                                                        ) : (
-                                                            <span className="text-yellow-400">Pending</span>
-                                                        )}
-                                                    </td>
-                                                    <td className="p-2">
-                                                        <div className="flex items-center gap-2">
-                                                            {!request.creato && (
-                                                                <button
-                                                                    onClick={() => createUserFromRequest(index)}
-                                                                    className="bg-green-600 hover:bg-green-700 text-white px-3 py-1 rounded text-sm font-bold"
-                                                                >
-                                                                    Create User
-                                                                </button>
-                                                            )}
+                                        requests.map((req, index) => (
+                                            <tr key={index} className="border-b border-gray-700 hover:bg-gray-750">
+                                                <td className="p-2 text-sm text-gray-400">
+                                                    {new Date(req.dataRichiesta).toLocaleDateString()}
+                                                </td>
+                                                <td className="p-2 font-medium">{req.nome} {req.cognome}</td>
+                                                <td className="p-2 text-sm">{req.email}</td>
+                                                <td className="p-2 text-sm">{req.citta}</td>
+                                                <td className="p-2">
+                                                    {req.creato ? (
+                                                        <span className="text-green-400 text-xs font-bold px-2 py-1 bg-green-900 bg-opacity-30 rounded-full">
+                                                            Creato ({req.username})
+                                                        </span>
+                                                    ) : (
+                                                        <span className="text-yellow-400 text-xs font-bold px-2 py-1 bg-yellow-900 bg-opacity-30 rounded-full">
+                                                            In attesa
+                                                        </span>
+                                                    )}
+                                                </td>
+                                                <td className="p-2">
+                                                    <div className="flex items-center gap-2">
+                                                        {!req.creato && (
                                                             <button
-                                                                onClick={() => handleDeleteRequest(index)}
-                                                                className="text-red-400 hover:text-red-300"
-                                                                title="Elimina richiesta"
+                                                                onClick={() => createUserFromRequest(index)}
+                                                                className="bg-blue-600 hover:bg-blue-700 text-white px-3 py-1 rounded text-sm font-bold"
                                                             >
-                                                                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                                                                    <path fillRule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" clipRule="evenodd" />
-                                                                </svg>
+                                                                Approva
                                                             </button>
-                                                        </div>
-                                                    </td>
-                                                </tr>
-                                            );
-                                        })
+                                                        )}
+                                                        <button
+                                                            onClick={() => handleDeleteRequest(index)}
+                                                            className="text-red-400 hover:text-red-300"
+                                                            title="Elimina richiesta"
+                                                        >
+                                                            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                                                                <path fillRule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" clipRule="evenodd" />
+                                                            </svg>
+                                                        </button>
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                        ))
                                     )}
                                 </tbody>
                             </table>
@@ -898,7 +1017,7 @@ const BackendScreen: React.FC<BackendScreenProps> = ({ onLogout }) => {
                     </div>
                 )}
             </div>
-        </div >
+        </div>
     );
 };
 

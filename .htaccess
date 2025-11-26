@@ -6,7 +6,6 @@
   RewriteBase /giragelato/
 
   # ---- ESCLUDI LE CARTELLE data/ E api/ ----
-  # Se la richiesta è /giragelato/data/... o /giragelato/api/...  → non eseguire il rewrite
   RewriteCond %{REQUEST_URI} ^/giragelato/(data|api)/ [NC]
   RewriteRule ^ - [L]
 
@@ -20,32 +19,34 @@
 # 2️⃣  PROTEZIONE FILE JSON
 # --------------------------------------------------------------
 <FilesMatch "\.(json)$">
-  <IfModule mod_authz_core.c>
-    # Apache 2.4+ – blocca l’accesso diretto da browser
-    Require all denied
-  </IfModule>
-  <IfModule !mod_authz_core.c>
-    # Apache 2.2
-    Order allow,deny
-    Deny from all
-  </IfModule>
+  # Consenti l'accesso ai file JSON nella cartella data, MA NON a users*.json
+  <If "%{REQUEST_URI} =~ m#^/giragelato/data/# && %{REQUEST_URI} !~ m#users.*\.json$#">
+      <IfModule mod_authz_core.c>
+          Require all granted
+      </IfModule>
+      <IfModule !mod_authz_core.c>
+          Order allow,deny
+          Allow from all
+      </IfModule>
+  </If>
+  # Altrimenti nega tutto (inclusi tutti i JSON fuori da data/ e users*.json dentro data/)
+  <Else>
+      <IfModule mod_authz_core.c>
+        Require all denied
+      </IfModule>
+      <IfModule !mod_authz_core.c>
+        Order allow,deny
+        Deny from all
+      </IfModule>
+  </Else>
 </FilesMatch>
 
 # --------------------------------------------------------------
-# 4️⃣  CACHE CONTROL (expires)
+# 4️⃣  CACHE CONTROL
 # --------------------------------------------------------------
 <IfModule mod_expires.c>
   ExpiresActive On
-  ExpiresByType image/jpg           "access plus 1 year"
-  ExpiresByType image/jpeg          "access plus 1 year"
-  ExpiresByType image/gif           "access plus 1 year"
-  ExpiresByType image/png           "access plus 1 year"
-  ExpiresByType image/svg+xml       "access plus 1 year"
-  ExpiresByType text/css            "access plus 1 month"
+  ExpiresByType image/png "access plus 1 year"
+  ExpiresByType text/css "access plus 1 month"
   ExpiresByType application/javascript "access plus 1 month"
-  ExpiresByType text/html           "access plus 0 seconds"
 </IfModule>
-
-# --------------------------------------------------------------
-# 5️⃣  FINE DEL FILE
-# --------------------------------------------------------------

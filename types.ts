@@ -16,14 +16,22 @@ export interface GameConfig {
     active?: boolean; // Global kill switch
     adminEmail?: string; // Email to notify for new registrations
     winningPercentage?: number; // Probability of winning (0-100)
+    emailProvider?: 'emailjs' | 'smtp';
+    smtpConfig?: {
+        host: string;
+        port: number;
+        secure: boolean; // true for 465, false for 587
+        user: string;
+        pass: string;
+        fromName: string;
+        fromEmail: string;
+    };
 }
 
 export interface GameState {
     dailyPlays: number;
     dailyWins: number;
 }
-
-
 
 export interface PlayRecord {
     data: string; // YYYY-MM-DD

@@ -116,7 +116,7 @@ const LoginScreen: React.FC<LoginScreenProps> = ({ onLoginSuccess }) => {
             // Reload users to ensure we have the latest data
             await userService.loadUsers(true);
             const timestamp = new Date().getTime();
-            const allUsers = await fetch(`${import.meta.env.BASE_URL}data/users.json?t=${timestamp}`, {
+            const allUsers = await fetch(`${import.meta.env.BASE_URL}api/get-users.php?t=${timestamp}`, {
                 headers: {
                     'Cache-Control': 'no-cache, no-store, must-revalidate',
                     'Pragma': 'no-cache',
@@ -266,7 +266,7 @@ const LoginScreen: React.FC<LoginScreenProps> = ({ onLoginSuccess }) => {
 
     return (
         <div className={`min-h-screen flex flex-col items-center justify-center text-white p-4 font-sans ${backgroundImage ? '' : 'bg-gray-900'}`} style={backgroundStyle}>
-            <div className="w-full max-w-md p-8 bg-gray-800 rounded-2xl shadow-xl border border-gray-700">
+            <div className="w-full max-w-md p-8 bg-gradient-to-br from-indigo-500 via-purple-500 to-pink-500 rounded-2xl shadow-2xl border border-white/20 backdrop-blur-sm">
                 {/* Logo */}
                 <div className="flex justify-center mb-4">
                     <img src={logo} alt="Logo" className="h-24 w-auto" />

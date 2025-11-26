@@ -24,20 +24,6 @@ try {
     $json = file_get_contents('php://input');
     $data = json_decode($json);
     
-    if ($data === null || !is_array($data)) {
-        http_response_code(400);
-        echo json_encode(['error' => 'Invalid JSON data']);
-        exit();
-    }
-    
-    $usersPath = __DIR__ . '/../data/users.json';
-    $dataDir = __DIR__ . '/../data';
-    
-    // Check if data directory exists and is writable
-    if (!is_dir($dataDir)) {
-        http_response_code(500);
-        echo json_encode(['error' => 'Data directory does not exist: ' . $dataDir]);
-        exit();
     }
     
     if (!is_writable($dataDir)) {
