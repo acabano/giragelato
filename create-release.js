@@ -1,22 +1,61 @@
-const fs = require('fs-extra');
-const path = require('path');
-const { execSync } = require('child_process');
+import fs from 'fs';
+import path from 'path';
+import { execSync } from 'child_process';
+import { fileURLToPath } from 'url';
+
+// Get __dirname equivalent in ES modules
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 // Directories
-const releaseDir = './release';
-const distDir = './dist';
-const apiDir = './api';
-const dataDir = './data';
-const imageDir = './Image';
+const releaseDir = path.join(__dirname, 'release');
+const distDir = path.join(__dirname, 'dist');
+const apiDir = path.join(__dirname, 'api');
+const dataDir = path.join(__dirname, 'data');
+const imageDir = path.join(__dirname, 'Image');
 
 console.log('🚀 Starting release build...');
 
+// Helper functions
+function ensureDirSync(dir) {
+    if (!fs.existsSync(dir)) {
+        fs.mkdirSync(dir, { recursive: true });
+    }
+}
+
+function removeSync(dir) {
+    if (fs.existsSync(dir)) {
+        fs.rmSync(dir, { recursive: true, force: true });
+    }
+}
+
+function copySync(src, dest) {
+    const stat = fs.statSync(src);
+
+    if (stat.isDirectory()) {
+        ensureDirSync(dest);
+        const entries = fs.readdirSync(src, { withFileTypes: true });
+
+        for (const entry of entries) {
+            const srcPath = path.join(src, entry.name);
+            const destPath = path.join(dest, entry.name);
+
+            if (entry.isDirectory()) {
+                copySync(srcPath, destPath);
+            } else {
+                fs.copyFileSync(srcPath, destPath);
+            }
+        }
+    } else {
+        ensureDirSync(path.dirname(dest));
+        fs.copyFileSync(src, dest);
+    }
+}
+
 // Step 1: Clean release directory
 console.log('🧹 Cleaning release directory...');
-if (fs.existsSync(releaseDir)) {
-    fs.removeSync(releaseDir);
-}
-fs.ensureDirSync(releaseDir);
+removeSync(releaseDir);
+ensureDirSync(releaseDir);
 
 // Step 2: Build the frontend (Vite)
 console.log('🔨 Building frontend with Vite...');
@@ -24,31 +63,31 @@ execSync('npm run build', { stdio: 'inherit' });
 
 // Step 3: Copy frontend build files
 console.log('📦 Copying frontend build files...');
-fs.copySync(distDir, releaseDir, { overwrite: true });
+copySync(distDir, releaseDir);
 
 // Step 4: Copy API backend files
 console.log('📡 Copying API backend files...');
 const apiReleaseDir = path.join(releaseDir, 'api');
-fs.ensureDirSync(apiReleaseDir);
-fs.copySync(apiDir, apiReleaseDir, { overwrite: true });
+ensureDirSync(apiReleaseDir);
+copySync(apiDir, apiReleaseDir);
 
 // Step 5: Copy Image folder (only PNG files)
 console.log('🖼️ Copying Image folder (PNG files only)...');
 const imageReleaseDir = path.join(releaseDir, 'Image');
-fs.ensureDirSync(imageReleaseDir);
+ensureDirSync(imageReleaseDir);
 const imageFiles = fs.readdirSync(imageDir).filter(file => file.endsWith('.png'));
 imageFiles.forEach(file => {
-    fs.copySync(path.join(imageDir, file), path.join(imageReleaseDir, file), { overwrite: true });
+    fs.copyFileSync(path.join(imageDir, file), path.join(imageReleaseDir, file));
 });
 
 // Step 6: Copy .htaccess
 console.log('📄 Copying .htaccess...');
-fs.copySync('./.htaccess', path.join(releaseDir, '.htaccess'), { overwrite: true });
+fs.copyFileSync(path.join(__dirname, '.htaccess'), path.join(releaseDir, '.htaccess'));
 
 // Step 7: Setup data directory
 console.log('📂 Setting up data directory...');
 const dataReleaseDir = path.join(releaseDir, 'data');
-fs.ensureDirSync(dataReleaseDir);
+ensureDirSync(dataReleaseDir);
 
 // Copy all JSON files from source data directory, except the ones we'll create defaults for
 const sourceDataFiles = fs.existsSync(dataDir) ? fs.readdirSync(dataDir) : [];
@@ -57,10 +96,9 @@ const excludeFiles = ['config.json', 'giocate.json', 'richieste.json'];
 sourceDataFiles.forEach(file => {
     if (file.endsWith('.json') && !excludeFiles.includes(file)) {
         console.log(`  Copying ${file}...`);
-        fs.copySync(
+        fs.copyFileSync(
             path.join(dataDir, file),
-            path.join(dataReleaseDir, file),
-            { overwrite: true }
+            path.join(dataReleaseDir, file)
         );
     }
 });
