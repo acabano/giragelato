@@ -128,23 +128,48 @@ const LoginScreen: React.FC<LoginScreenProps> = ({ onLoginSuccess }) => {
 
             if (userAccount) {
                 // Send email with credentials
-                const EMAILJS_SERVICE_ID = 'service_yhqh5ki';
-                const EMAILJS_TEMPLATE_ID = 'template_qlut1jm';
-                const EMAILJS_PUBLIC_KEY = 'k8cGZ3qhshqqt20NA';
+                if (config?.emailProvider === 'smtp' && config.smtpConfig) {
+                    // Send via SMTP API
+                    const emailResponse = await fetch(`${import.meta.env.BASE_URL}api/send-email.php`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            smtpConfig: config.smtpConfig,
+                            to: userAccount.email,
+                            subject: `Password Recovery - ${config.nomeDellaRuota}`,
+                            body: `
+                                <h1>Password Recovery</h1>
+                                <p>Hello ${userAccount.user},</p>
+                                <p>You requested a password recovery.</p>
+                                <p><strong>Username:</strong> ${userAccount.user}</p>
+                                <p><strong>Password:</strong> ${userAccount.password}</p>
+                            `
+                        })
+                    });
 
-                await emailjs.send(
-                    EMAILJS_SERVICE_ID,
-                    EMAILJS_TEMPLATE_ID,
-                    {
-                        to_email: userAccount.email,
-                        to_name: userAccount.user,
-                        username: userAccount.user,
-                        password: userAccount.password,
-                        wheel_name: config?.nomeDellaRuota || 'Wheel of Fortune',
-                        email: config?.adminEmail || 'noreply@example.com'
-                    },
-                    EMAILJS_PUBLIC_KEY
-                );
+                    if (!emailResponse.ok) {
+                        throw new Error('SMTP Email failed');
+                    }
+                } else {
+                    // Send via EmailJS
+                    const serviceId = config?.emailJsConfig?.serviceId || 'service_yhqh5ki';
+                    const templateId = config?.emailJsConfig?.templateId || 'template_qlut1jm';
+                    const publicKey = config?.emailJsConfig?.publicKey || 'k8cGZ3qhshqqt20NA';
+
+                    await emailjs.send(
+                        serviceId,
+                        templateId,
+                        {
+                            to_email: userAccount.email,
+                            to_name: userAccount.user,
+                            username: userAccount.user,
+                            password: userAccount.password,
+                            wheel_name: config?.nomeDellaRuota || 'Wheel of Fortune',
+                            email: config?.adminEmail || 'noreply@example.com'
+                        },
+                        publicKey
+                    );
+                }
 
                 setSuccess('Password sent to your email address!');
                 setTimeout(() => {

@@ -40,7 +40,12 @@ const BackendScreen: React.FC<BackendScreenProps> = ({ onLogout }) => {
         active: true,
         adminEmail: '',
         winningPercentage: 5,
-        emailProvider: 'emailjs'
+        emailProvider: 'emailjs',
+        emailJsConfig: {
+            serviceId: 'service_yhqh5ki',
+            templateId: 'template_qlut1jm',
+            publicKey: 'k8cGZ3qhshqqt20NA'
+        }
     });
 
     const getDefaultUsers = (): User[] => [
@@ -340,9 +345,13 @@ const BackendScreen: React.FC<BackendScreenProps> = ({ onLogout }) => {
 
             } else {
                 // Send via EmailJS (Fallback or Default)
+                const serviceId = config?.emailJsConfig?.serviceId || EMAILJS_SERVICE_ID;
+                const templateId = config?.emailJsConfig?.templateId || EMAILJS_TEMPLATE_ID;
+                const publicKey = config?.emailJsConfig?.publicKey || EMAILJS_PUBLIC_KEY;
+
                 await emailjs.send(
-                    EMAILJS_SERVICE_ID,
-                    EMAILJS_TEMPLATE_ID,
+                    serviceId,
+                    templateId,
                     {
                         to_email: request.email,
                         to_name: `${request.nome} ${request.cognome}`,
@@ -351,7 +360,7 @@ const BackendScreen: React.FC<BackendScreenProps> = ({ onLogout }) => {
                         wheel_name: config?.nomeDellaRuota || 'Wheel of Fortune',
                         email: config?.adminEmail || 'noreply@example.com' // Used for Reply-To in the template
                     },
-                    EMAILJS_PUBLIC_KEY
+                    publicKey
                 );
                 setMessage({
                     text: `✅ User created! Username: ${username}, Password: ${password}. Email sent via EmailJS to ${request.email}`,
@@ -622,6 +631,50 @@ const BackendScreen: React.FC<BackendScreenProps> = ({ onLogout }) => {
                                             <option value="smtp">SMTP (Server-side)</option>
                                         </select>
                                     </div>
+
+                                    {config.emailProvider === 'emailjs' && (
+                                        <div className="space-y-3 pl-4 border-l-2 border-purple-500">
+                                            <div>
+                                                <label className="block text-sm text-gray-400 mb-1">Service ID</label>
+                                                <input
+                                                    type="text"
+                                                    value={config.emailJsConfig?.serviceId || ''}
+                                                    onChange={e => setConfig({
+                                                        ...config,
+                                                        emailJsConfig: { ...config.emailJsConfig!, serviceId: e.target.value }
+                                                    })}
+                                                    className="w-full bg-gray-700 border border-gray-600 rounded p-2"
+                                                    placeholder="service_..."
+                                                />
+                                            </div>
+                                            <div>
+                                                <label className="block text-sm text-gray-400 mb-1">Template ID</label>
+                                                <input
+                                                    type="text"
+                                                    value={config.emailJsConfig?.templateId || ''}
+                                                    onChange={e => setConfig({
+                                                        ...config,
+                                                        emailJsConfig: { ...config.emailJsConfig!, templateId: e.target.value }
+                                                    })}
+                                                    className="w-full bg-gray-700 border border-gray-600 rounded p-2"
+                                                    placeholder="template_..."
+                                                />
+                                            </div>
+                                            <div>
+                                                <label className="block text-sm text-gray-400 mb-1">Public Key</label>
+                                                <input
+                                                    type="text"
+                                                    value={config.emailJsConfig?.publicKey || ''}
+                                                    onChange={e => setConfig({
+                                                        ...config,
+                                                        emailJsConfig: { ...config.emailJsConfig!, publicKey: e.target.value }
+                                                    })}
+                                                    className="w-full bg-gray-700 border border-gray-600 rounded p-2"
+                                                    placeholder="Public Key"
+                                                />
+                                            </div>
+                                        </div>
+                                    )}
 
                                     {config.emailProvider === 'smtp' && (
                                         <div className="space-y-3 pl-4 border-l-2 border-purple-500">

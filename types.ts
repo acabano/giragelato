@@ -26,6 +26,11 @@ export interface GameConfig {
         fromName: string;
         fromEmail: string;
     };
+    emailJsConfig?: {
+        serviceId: string;
+        templateId: string;
+        publicKey: string;
+    };
 }
 
 export interface GameState {
