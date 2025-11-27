@@ -1,26 +1,27 @@
 # --------------------------------------------------------------
-# 1️⃣  REWRITE – SPA routing + eccezione per la cartella data/
+# 1️⃣  REWRITE – SPA routing + exception for data/ and api/
 # --------------------------------------------------------------
 <IfModule mod_rewrite.c>
   RewriteEngine On
-  RewriteBase /giragelato/
+  # No RewriteBase needed for portability
 
-  # ---- ESCLUDI LE CARTELLE data/ E api/ ----
-  RewriteCond %{REQUEST_URI} ^/giragelato/(data|api)/ [NC]
+  # ---- EXCLUDE data/ AND api/ FOLDERS ----
+  RewriteCond %{REQUEST_URI} /(data|api)/ [NC]
   RewriteRule ^ - [L]
 
-  # Regola standard per la Single‑Page Application
+  # Standard SPA Routing Rule
   RewriteCond %{REQUEST_FILENAME} !-f
   RewriteCond %{REQUEST_FILENAME} !-d
-  RewriteRule ^(.*)$ /giragelato/index.html [L]
+  RewriteRule ^ index.html [L]
 </IfModule>
 
 # --------------------------------------------------------------
-# 2️⃣  PROTEZIONE FILE JSON
+# 2️⃣  PROTECT JSON FILES
 # --------------------------------------------------------------
 <FilesMatch "\.(json)$">
-  # Consenti l'accesso ai file JSON nella cartella data, MA NON a users*.json
-  <If "%{REQUEST_URI} =~ m#^/giragelato/data/# && %{REQUEST_URI} !~ m#users.*\.json$#">
+  # Allow access to JSON files in data/ folder, but NOT users*.json
+  # We use a regex that matches /data/ anywhere in the path
+  <If "%{REQUEST_URI} =~ m#/data/# && %{REQUEST_URI} !~ m#users.*\.json$#">
       <IfModule mod_authz_core.c>
           Require all granted
       </IfModule>
@@ -29,7 +30,7 @@
           Allow from all
       </IfModule>
   </If>
-  # Altrimenti nega tutto (inclusi tutti i JSON fuori da data/ e users*.json dentro data/)
+  # Otherwise deny everything (including all JSONs outside data/ and users*.json inside data/)
   <Else>
       <IfModule mod_authz_core.c>
         Require all denied
