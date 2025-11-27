@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { GameConfig, GameState, Prize, User, PlayLog } from '../types';
 import { initAudio, playSpinTickSound, playWinSound, playLossSound } from '../services/soundService';
+import { buildUrl } from '../utils/paths';
 import Wheel from './Wheel';
 import Spinner from './Spinner';
 import ResultModal from './ResultModal';
@@ -56,7 +57,7 @@ const GameScreen: React.FC<GameScreenProps> = ({ user, onLogout }) => {
         try {
             // Load current users
             const timestamp = new Date().getTime();
-            const response = await fetch(`${import.meta.env.BASE_URL}api/get-users.php?t=${timestamp}`, {
+            const response = await fetch(buildUrl(`api/get-users.php?t=${timestamp}`), {
                 headers: { 'Cache-Control': 'no-cache' }
             });
             if (!response.ok) throw new Error('Failed to load users');
@@ -70,7 +71,7 @@ const GameScreen: React.FC<GameScreenProps> = ({ user, onLogout }) => {
             users[userIndex].password = newPassword;
 
             // Save updated users
-            const saveResponse = await fetch(`${import.meta.env.BASE_URL}api/save-users.php`, {
+            const saveResponse = await fetch(buildUrl(`api/save-users.php`), {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(users, null, 4)
@@ -97,14 +98,14 @@ const GameScreen: React.FC<GameScreenProps> = ({ user, onLogout }) => {
         try {
             const timestamp = new Date().getTime();
             const [configRes, playsRes] = await Promise.all([
-                fetch(`${import.meta.env.BASE_URL}data/config.json?t=${timestamp}`, {
+                fetch(buildUrl(`data/config.json?t=${timestamp}`), {
                     headers: {
                         'Cache-Control': 'no-cache, no-store, must-revalidate',
                         'Pragma': 'no-cache',
                         'Expires': '0'
                     }
                 }),
-                fetch(`${import.meta.env.BASE_URL}data/giocate.json?t=${timestamp}`, {
+                fetch(buildUrl(`data/giocate.json?t=${timestamp}`), {
                     headers: {
                         'Cache-Control': 'no-cache, no-store, must-revalidate',
                         'Pragma': 'no-cache',
@@ -147,7 +148,7 @@ const GameScreen: React.FC<GameScreenProps> = ({ user, onLogout }) => {
     useEffect(() => {
         const checkBackgroundImage = () => {
             const img = new Image();
-            const bgPath = `${import.meta.env.BASE_URL}Image/sfondo.png`;
+            const bgPath = buildUrl(`Image/sfondo.png`);
 
             img.onload = () => {
                 setBackgroundImage(bgPath);
@@ -215,7 +216,7 @@ const GameScreen: React.FC<GameScreenProps> = ({ user, onLogout }) => {
 
         // Save to server
         try {
-            await fetch(`${import.meta.env.BASE_URL}api/save-plays.php`, {
+            await fetch(buildUrl(`api/save-plays.php`), {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(updatedPlayLogs, null, 4)

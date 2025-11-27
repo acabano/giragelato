@@ -1,5 +1,6 @@
 
 import { User, PlayRecord } from '../types';
+import { buildUrl } from '../utils/paths';
 
 const USER_STORAGE_KEY = 'wheelOfFortuneUser';
 
@@ -13,7 +14,7 @@ export async function loadUsers(forceReload: boolean = false): Promise<void> {
     if (allUsers.length > 0 && !forceReload) return;
     try {
         const timestamp = new Date().getTime();
-        const response = await fetch(`${import.meta.env.BASE_URL}api/get-users.php?t=${timestamp}`, {
+        const response = await fetch(buildUrl(`api/get-users.php?t=${timestamp}`), {
             headers: {
                 'Cache-Control': 'no-cache, no-store, must-revalidate',
                 'Pragma': 'no-cache',

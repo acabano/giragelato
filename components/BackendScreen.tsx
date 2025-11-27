@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { GameConfig, Prize, User, PlayLog, UserRequest } from '../types';
 import emailjs from '@emailjs/browser';
+import { buildUrl } from '../utils/paths';
 
 interface BackendScreenProps {
     onLogout: () => void;
@@ -84,7 +85,7 @@ const BackendScreen: React.FC<BackendScreenProps> = ({ onLogout }) => {
                     filename === 'giocate.json' ? 'save-plays.php' :
                         'save-requests.php';
 
-            const response = await fetch(`${import.meta.env.BASE_URL}api/${endpoint}`, {
+            const response = await fetch(buildUrl(`api/${endpoint}`), {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(defaultData, null, 4)
@@ -109,19 +110,19 @@ const BackendScreen: React.FC<BackendScreenProps> = ({ onLogout }) => {
             // Add cache-busting parameter to ensure fresh data
             const cacheBuster = `?t=${Date.now()}`;
             const [configRes, usersRes, playsRes, requestsRes] = await Promise.all([
-                fetch(`${import.meta.env.BASE_URL}data/config.json${cacheBuster}`, {
+                fetch(buildUrl(`data/config.json${cacheBuster}`), {
                     cache: 'no-store',
                     headers: { 'Cache-Control': 'no-cache' }
                 }),
-                fetch(`${import.meta.env.BASE_URL}api/get-users.php${cacheBuster}`, {
+                fetch(buildUrl(`api/get-users.php${cacheBuster}`), {
                     cache: 'no-store',
                     headers: { 'Cache-Control': 'no-cache' }
                 }),
-                fetch(`${import.meta.env.BASE_URL}data/giocate.json${cacheBuster}`, {
+                fetch(buildUrl(`data/giocate.json${cacheBuster}`), {
                     cache: 'no-store',
                     headers: { 'Cache-Control': 'no-cache' }
                 }),
-                fetch(`${import.meta.env.BASE_URL}data/richieste.json${cacheBuster}`, {
+                fetch(buildUrl(`data/richieste.json${cacheBuster}`), {
                     cache: 'no-store',
                     headers: { 'Cache-Control': 'no-cache' }
                 })

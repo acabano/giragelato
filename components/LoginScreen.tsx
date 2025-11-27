@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { User, GameConfig, UserRequest } from '../types';
 import * as userService from '../services/userService';
 import emailjs from '@emailjs/browser';
+import { buildUrl } from '../utils/paths';
 
 interface LoginScreenProps {
     onLoginSuccess: (user: User) => void;
@@ -28,7 +29,7 @@ const LoginScreen: React.FC<LoginScreenProps> = ({ onLoginSuccess }) => {
     useEffect(() => {
         const checkBackgroundImage = () => {
             const img = new Image();
-            const bgPath = `${import.meta.env.BASE_URL}Image/sfondo.png`;
+            const bgPath = buildUrl(`Image/sfondo.png`);
 
             img.onload = () => {
                 setBackgroundImage(bgPath);
@@ -49,7 +50,7 @@ const LoginScreen: React.FC<LoginScreenProps> = ({ onLoginSuccess }) => {
             // Load config for wheel name
             try {
                 const timestamp = new Date().getTime();
-                const response = await fetch(`${import.meta.env.BASE_URL}data/config.json?t=${timestamp}`, {
+                const response = await fetch(buildUrl(`data/config.json?t=${timestamp}`), {
                     headers: { 'Cache-Control': 'no-cache' }
                 });
                 if (response.ok) {
@@ -115,7 +116,7 @@ const LoginScreen: React.FC<LoginScreenProps> = ({ onLoginSuccess }) => {
             // Reload users to ensure we have the latest data
             await userService.loadUsers(true);
             const timestamp = new Date().getTime();
-            const allUsers = await fetch(`${import.meta.env.BASE_URL}api/get-users.php?t=${timestamp}`, {
+            const allUsers = await fetch(buildUrl(`api/get-users.php?t=${timestamp}`), {
                 headers: {
                     'Cache-Control': 'no-cache, no-store, must-revalidate',
                     'Pragma': 'no-cache',
@@ -129,7 +130,7 @@ const LoginScreen: React.FC<LoginScreenProps> = ({ onLoginSuccess }) => {
                 // Send email with credentials
                 if (config?.emailProvider === 'smtp' && config.smtpConfig) {
                     // Send via SMTP API
-                    const emailResponse = await fetch(`${import.meta.env.BASE_URL}api/send-email.php`, {
+                    const emailResponse = await fetch(buildUrl(`api/send-email.php`), {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify({
@@ -200,7 +201,7 @@ const LoginScreen: React.FC<LoginScreenProps> = ({ onLoginSuccess }) => {
         try {
             // Load existing requests
             const timestamp = new Date().getTime();
-            const response = await fetch(`${import.meta.env.BASE_URL}data/richieste.json?t=${timestamp}`, {
+            const response = await fetch(buildUrl(`data/richieste.json?t=${timestamp}`), {
                 headers: { 'Cache-Control': 'no-cache' }
             });
             const requests: UserRequest[] = response.ok ? await response.json() : [];
@@ -221,7 +222,7 @@ const LoginScreen: React.FC<LoginScreenProps> = ({ onLoginSuccess }) => {
             const updatedRequests = [...requests, newRequest];
 
             // Save to server
-            const saveResponse = await fetch(`${import.meta.env.BASE_URL}api/save-requests.php`, {
+            const saveResponse = await fetch(buildUrl(`api/save-requests.php`), {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(updatedRequests, null, 4)
@@ -294,7 +295,7 @@ const LoginScreen: React.FC<LoginScreenProps> = ({ onLoginSuccess }) => {
                 {/* Logo */}
                 <div className="flex justify-center mb-4">
                     <img
-                        src={`${import.meta.env.BASE_URL}Image/Logo.png?v=${Date.now()}`}
+                        src={buildUrl(`Image/Logo.png?v=${Date.now()}`)}
                         alt="Logo"
                         className="h-24 w-auto"
                     />
