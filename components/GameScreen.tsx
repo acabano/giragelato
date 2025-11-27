@@ -28,6 +28,27 @@ const GameScreen: React.FC<GameScreenProps> = ({ user, onLogout }) => {
     const [newPassword, setNewPassword] = useState('');
     const [passwordMessage, setPasswordMessage] = useState<{ text: string; type: 'success' | 'error' } | null>(null);
 
+    // Hamburger Menu State
+    const [isMenuOpen, setIsMenuOpen] = useState(false);
+    const menuRef = useRef<HTMLDivElement>(null);
+
+    // Close menu when clicking outside
+    useEffect(() => {
+        const handleClickOutside = (event: MouseEvent) => {
+            if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
+                setIsMenuOpen(false);
+            }
+        };
+
+        if (isMenuOpen) {
+            document.addEventListener('mousedown', handleClickOutside);
+        }
+
+        return () => {
+            document.removeEventListener('mousedown', handleClickOutside);
+        };
+    }, [isMenuOpen]);
+
     const handleChangePassword = async (e: React.FormEvent) => {
         e.preventDefault();
         if (!newPassword) return;
@@ -265,21 +286,7 @@ const GameScreen: React.FC<GameScreenProps> = ({ user, onLogout }) => {
             backgroundSize: '20px 20px'
         };
 
-    const [isMenuOpen, setIsMenuOpen] = useState(false);
-    const menuRef = useRef<HTMLDivElement>(null);
 
-    // Close menu when clicking outside
-    useEffect(() => {
-        const handleClickOutside = (event: MouseEvent) => {
-            if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
-                setIsMenuOpen(false);
-            }
-        };
-        document.addEventListener('mousedown', handleClickOutside);
-        return () => {
-            document.removeEventListener('mousedown', handleClickOutside);
-        };
-    }, []);
 
     return (
         <div className="bg-gray-900 min-h-screen flex flex-col items-center justify-center text-white p-4 font-sans" style={backgroundStyle}>
