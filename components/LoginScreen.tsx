@@ -2,7 +2,6 @@ import React, { useState, useEffect } from 'react';
 import { User, GameConfig, UserRequest } from '../types';
 import * as userService from '../services/userService';
 import emailjs from '@emailjs/browser';
-import logo from '../Image/Logo.png';
 
 interface LoginScreenProps {
     onLoginSuccess: (user: User) => void;
@@ -294,7 +293,11 @@ const LoginScreen: React.FC<LoginScreenProps> = ({ onLoginSuccess }) => {
             <div className="w-full max-w-md p-8 bg-gradient-to-br from-indigo-500 via-purple-500 to-pink-500 rounded-2xl shadow-2xl border border-white/20 backdrop-blur-sm">
                 {/* Logo */}
                 <div className="flex justify-center mb-4">
-                    <img src={logo} alt="Logo" className="h-24 w-auto" />
+                    <img
+                        src={`${import.meta.env.BASE_URL}Image/Logo.png?v=${Date.now()}`}
+                        alt="Logo"
+                        className="h-24 w-auto"
+                    />
                 </div>
 
                 <h1 className="text-3xl font-bold text-center mb-2 text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-pink-600">
