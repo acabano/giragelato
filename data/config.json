@@ -57,5 +57,12 @@
         }
     ],
     "active": true,
-    "adminEmail": ""
+    "adminEmail": "",
+    "winningPercentage": 5,
+    "emailProvider": "emailjs",
+    "emailJsConfig": {
+        "serviceId": "service_yhqh5ki",
+        "templateId": "template_qlut1jm",
+        "publicKey": "k8cGZ3qhshqqt20NA"
+    }
 }
