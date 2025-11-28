@@ -21,6 +21,7 @@ const GameScreen: React.FC<GameScreenProps> = ({ user, onLogout }) => {
     const [spinResult, setSpinResult] = useState<{ prize: Prize; rotation: number } | null>(null);
     const [showModal, setShowModal] = useState(false);
     const [lastPlayTime, setLastPlayTime] = useState<{ date: string; time: string } | null>(null);
+    const [winCode, setWinCode] = useState<string | null>(null);
     const [backgroundImage, setBackgroundImage] = useState<string | null>(null);
     const spinSoundInterval = useRef<number | null>(null);
 
@@ -210,6 +211,15 @@ const GameScreen: React.FC<GameScreenProps> = ({ user, onLogout }) => {
             vincita: chosenPrize.vincita,
             ...(chosenPrize.vincita && { riscosso: false }) // Add riscosso field only for wins
         };
+
+        // Generate unique win code if it's a win
+        if (chosenPrize.vincita) {
+            const code = Math.random().toString(36).substring(2, 10).toUpperCase();
+            newPlayLog.winCode = code;
+            setWinCode(code);
+        } else {
+            setWinCode(null);
+        }
 
         const updatedPlayLogs = [...playLogs, newPlayLog];
         setPlayLogs(updatedPlayLogs);
@@ -419,6 +429,7 @@ const GameScreen: React.FC<GameScreenProps> = ({ user, onLogout }) => {
                     username={user.user}
                     date={lastPlayTime?.date}
                     time={lastPlayTime?.time}
+                    winCode={winCode || undefined}
                 />
             )}
         </div>

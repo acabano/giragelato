@@ -16,30 +16,17 @@
 </IfModule>
 
 # --------------------------------------------------------------
-# 2️⃣  PROTECT JSON FILES
+# 2️⃣  PROTECT USERS JSON FILES ONLY
 # --------------------------------------------------------------
-<FilesMatch "\.(json)$">
-  # Allow access to JSON files in data/ folder, but NOT users*.json
-  # We use a regex that matches /data/ anywhere in the path
-  <If "%{REQUEST_URI} =~ m#/data/# && %{REQUEST_URI} !~ m#users.*\.json$#">
-      <IfModule mod_authz_core.c>
-          Require all granted
-      </IfModule>
-      <IfModule !mod_authz_core.c>
-          Order allow,deny
-          Allow from all
-      </IfModule>
-  </If>
-  # Otherwise deny everything (including all JSONs outside data/ and users*.json inside data/)
-  <Else>
-      <IfModule mod_authz_core.c>
+# Block access to any users*.json file in any directory
+<FilesMatch "users.*\.json$">
+    <IfModule mod_authz_core.c>
         Require all denied
-      </IfModule>
-      <IfModule !mod_authz_core.c>
+    </IfModule>
+    <IfModule !mod_authz_core.c>
         Order allow,deny
         Deny from all
-      </IfModule>
-  </Else>
+    </IfModule>
 </FilesMatch>
 
 # --------------------------------------------------------------

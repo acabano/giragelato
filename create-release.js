@@ -7,14 +7,27 @@ import { fileURLToPath } from 'url';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-// Directories
-const releaseDir = path.join(__dirname, 'release');
+// Get client name from command line arguments
+const clientName = process.argv[2];
+
+if (!clientName) {
+    console.error('❌ Error: Please specify a client name (subdirectory).');
+    console.error('Usage: node create-release.js <client_name>');
+    console.error('Example: node create-release.js stellamarina');
+    process.exit(1);
+}
+
+// Configuration
+const baseUrl = `/${clientName}/`;
+const releaseRoot = path.join(__dirname, 'release');
+const clientReleaseDir = path.join(releaseRoot, clientName);
 const distDir = path.join(__dirname, 'dist');
 const apiDir = path.join(__dirname, 'api');
 const dataDir = path.join(__dirname, 'data');
 const imageDir = path.join(__dirname, 'Image');
 
-console.log('🚀 Starting release build...');
+console.log(`🚀 Starting release build for client: ${clientName}`);
+console.log(`📍 Base URL will be: ${baseUrl}`);
 
 // Helper functions
 function ensureDirSync(dir) {
@@ -52,41 +65,64 @@ function copySync(src, dest) {
     }
 }
 
-// Step 1: Clean release directory
-console.log('🧹 Cleaning release directory...');
-removeSync(releaseDir);
-ensureDirSync(releaseDir);
+// Step 1: Clean client release directory
+console.log(`🧹 Cleaning release directory: ${clientReleaseDir}...`);
+removeSync(clientReleaseDir);
+ensureDirSync(clientReleaseDir);
 
 // Step 2: Build the frontend (Vite)
 console.log('🔨 Building frontend with Vite...');
-execSync('npm run build', { stdio: 'inherit' });
+try {
+    // Pass VITE_BASE_URL to the build process
+    execSync('npm run build', {
+        stdio: 'inherit',
+        env: {
+            ...process.env,
+            VITE_BASE_URL: baseUrl
+        }
+    });
+} catch (error) {
+    console.error('❌ Build failed!');
+    process.exit(1);
+}
 
 // Step 3: Copy frontend build files
 console.log('📦 Copying frontend build files...');
-copySync(distDir, releaseDir);
+copySync(distDir, clientReleaseDir);
 
 // Step 4: Copy API backend files
 console.log('📡 Copying API backend files...');
-const apiReleaseDir = path.join(releaseDir, 'api');
+const apiReleaseDir = path.join(clientReleaseDir, 'api');
 ensureDirSync(apiReleaseDir);
 copySync(apiDir, apiReleaseDir);
 
 // Step 5: Copy Image folder (only PNG files)
 console.log('🖼️ Copying Image folder (PNG files only)...');
-const imageReleaseDir = path.join(releaseDir, 'Image');
+const imageReleaseDir = path.join(clientReleaseDir, 'Image');
 ensureDirSync(imageReleaseDir);
-const imageFiles = fs.readdirSync(imageDir).filter(file => file.endsWith('.png'));
-imageFiles.forEach(file => {
-    fs.copyFileSync(path.join(imageDir, file), path.join(imageReleaseDir, file));
-});
+if (fs.existsSync(imageDir)) {
+    const imageFiles = fs.readdirSync(imageDir).filter(file => file.endsWith('.png'));
+    imageFiles.forEach(file => {
+        fs.copyFileSync(path.join(imageDir, file), path.join(imageReleaseDir, file));
+    });
+} else {
+    console.warn('⚠️ Image directory not found, skipping images.');
+}
 
 // Step 6: Copy .htaccess
 console.log('📄 Copying .htaccess...');
-fs.copyFileSync(path.join(__dirname, '.htaccess'), path.join(releaseDir, '.htaccess'));
+// We might need to adjust .htaccess for the subdirectory if it has hardcoded paths, 
+// but usually .htaccess in the root of the app is fine if it uses relative paths or RewriteBase.
+// For now, we copy it as is.
+if (fs.existsSync(path.join(__dirname, '.htaccess'))) {
+    fs.copyFileSync(path.join(__dirname, '.htaccess'), path.join(clientReleaseDir, '.htaccess'));
+} else {
+    console.warn('⚠️ .htaccess not found!');
+}
 
 // Step 7: Setup data directory
 console.log('📂 Setting up data directory...');
-const dataReleaseDir = path.join(releaseDir, 'data');
+const dataReleaseDir = path.join(clientReleaseDir, 'data');
 ensureDirSync(dataReleaseDir);
 
 // Copy all JSON files from source data directory, except the ones we'll create defaults for
@@ -178,10 +214,9 @@ if (!hasUserFile) {
 }
 
 console.log('✅ Release build complete!');
-console.log(`📦 Release files are in: ${releaseDir}`);
+console.log(`📦 Release files are in: ${clientReleaseDir}`);
 console.log('\n📋 Deployment checklist:');
-console.log('  1. Upload all files from ./release to your web server');
-console.log('  2. Ensure the data/ directory is writable by the web server');
-console.log('  3. Check that .htaccess rules are working (test JSON access)');
-console.log('  4. Test the application and verify all features work');
-console.log('  5. Change default admin password immediately!');
+console.log(`  1. Upload the CONTENTS of '${clientReleaseDir}' to 'https://yourdomain.com/${clientName}/'`);
+console.log('  2. Ensure the data/ directory is writable by the web server (chmod 777 or similar)');
+console.log('  3. Test the application!');
+

@@ -61,6 +61,7 @@ export interface PlayLog {
     risultato: string;
     vincita: boolean;
     riscosso?: boolean; // true if prize has been claimed (only for winning plays)
+    winCode?: string; // Unique code for winning plays
 }
 
 export interface UserRequest {

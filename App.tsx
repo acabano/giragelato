@@ -6,6 +6,7 @@ import BackendScreen from './components/BackendScreen';
 import { User } from './types';
 import * as userService from './services/userService';
 import Spinner from './components/Spinner';
+import { buildUrl } from './utils/paths';
 
 const App: React.FC = () => {
     const [currentUser, setCurrentUser] = useState<User | null>(null);
@@ -23,7 +24,7 @@ const App: React.FC = () => {
             // Load Config for Active State
             try {
                 const timestamp = new Date().getTime();
-                const response = await fetch(`${import.meta.env.BASE_URL}data/config.json?t=${timestamp}`);
+                const response = await fetch(buildUrl(`data/config.json?t=${timestamp}`));
                 if (response.ok) {
                     const config = await response.json();
                     // Default to true if undefined

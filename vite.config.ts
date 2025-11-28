@@ -6,7 +6,9 @@ import react from '@vitejs/plugin-react';
 export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, '.', '');
   return {
-    base: './', // Relative base path for portability
+    // Use VITE_BASE_URL env var if set (from build script), otherwise default to root
+    base: process.env.VITE_BASE_URL || '/',
+
     server: {
       port: 3000,
       host: '0.0.0.0',

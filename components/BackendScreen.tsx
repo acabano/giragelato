@@ -15,6 +15,7 @@ const BackendScreen: React.FC<BackendScreenProps> = ({ onLogout }) => {
     const [requests, setRequests] = useState<UserRequest[]>([]);
     const [isLoading, setIsLoading] = useState(true);
     const [message, setMessage] = useState<{ text: string; type: 'success' | 'error' } | null>(null);
+    const [searchTerm, setSearchTerm] = useState('');
 
     // EmailJS Configuration
     const EMAILJS_SERVICE_ID = 'service_yhqh5ki';
@@ -101,6 +102,34 @@ const BackendScreen: React.FC<BackendScreenProps> = ({ onLogout }) => {
         } catch (error) {
             console.error(`Error restoring ${filename}:`, error);
             return false;
+        }
+    };
+
+    const downloadCSV = (data: any[], filename: string) => {
+        if (!data || data.length === 0) {
+            setMessage({ text: 'No data to export', type: 'error' });
+            return;
+        }
+
+        const headers = Object.keys(data[0]);
+        const csvContent = [
+            headers.join(','),
+            ...data.map(row => headers.map(header => {
+                const value = row[header];
+                return typeof value === 'string' ? `"${value.replace(/"/g, '""')}"` : value;
+            }).join(','))
+        ].join('\n');
+
+        const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+        const link = document.createElement('a');
+        if (link.download !== undefined) {
+            const url = URL.createObjectURL(blob);
+            link.setAttribute('href', url);
+            link.setAttribute('download', filename);
+            link.style.visibility = 'hidden';
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
         }
     };
 
@@ -471,6 +500,15 @@ const BackendScreen: React.FC<BackendScreenProps> = ({ onLogout }) => {
         const dateCompare = b.data.localeCompare(a.data);
         if (dateCompare !== 0) return dateCompare;
         return b.ora.localeCompare(a.ora);
+    }).filter(log => {
+        if (!searchTerm) return true;
+        const term = searchTerm.toLowerCase();
+        return (
+            log.user.toLowerCase().includes(term) ||
+            log.risultato.toLowerCase().includes(term) ||
+            log.data.includes(term) ||
+            (log.winCode && log.winCode.toLowerCase().includes(term))
+        );
     });
 
     // Calculate pending counts for badges
@@ -843,12 +881,18 @@ const BackendScreen: React.FC<BackendScreenProps> = ({ onLogout }) => {
                             <h2 className="text-xl font-semibold text-blue-300">Registered Users</h2>
                             <div className="space-x-2">
                                 <button
-                                    onClick={handleSaveUsers}
+                                    onClick={() => downloadCSV(users, 'users.csv')}
                                     className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded font-bold"
+                                >
+                                    Export CSV
+                                </button>
+                                <button
+                                    onClick={handleSaveUsers}
+                                    className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded font-bold"
                                 >
                                     Save Users
                                 </button>
-                                <button onClick={addUser} className="bg-blue-600 hover:bg-blue-700 px-4 py-2 rounded font-bold">+ Add User</button>
+                                <button onClick={addUser} className="bg-purple-600 hover:bg-purple-700 px-4 py-2 rounded font-bold">+ Add User</button>
                             </div>
                         </div>
 
@@ -921,6 +965,22 @@ const BackendScreen: React.FC<BackendScreenProps> = ({ onLogout }) => {
                             </div>
                         </div>
 
+                        <div className="flex justify-between items-center mb-4 gap-4">
+                            <input
+                                type="text"
+                                placeholder="Search by user, prize, date or win code..."
+                                value={searchTerm}
+                                onChange={(e) => setSearchTerm(e.target.value)}
+                                className="bg-gray-700 border border-gray-600 rounded p-2 flex-grow text-white"
+                            />
+                            <button
+                                onClick={() => downloadCSV(sortedPlayLogs, 'play_logs.csv')}
+                                className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded font-bold whitespace-nowrap"
+                            >
+                                Export CSV
+                            </button>
+                        </div>
+
                         <div className="overflow-x-auto">
                             <table className="w-full text-left border-collapse">
                                 <thead>
@@ -929,6 +989,7 @@ const BackendScreen: React.FC<BackendScreenProps> = ({ onLogout }) => {
                                         <th className="p-2">Date</th>
                                         <th className="p-2">Time</th>
                                         <th className="p-2">Result</th>
+                                        <th className="p-2">Win Code</th>
                                         <th className="p-2">Win?</th>
                                         <th className="p-2">Claimed?</th>
                                         <th className="p-2">Actions</th>
@@ -948,6 +1009,7 @@ const BackendScreen: React.FC<BackendScreenProps> = ({ onLogout }) => {
                                                     <td className="p-2">{log.data}</td>
                                                     <td className="p-2">{log.ora}</td>
                                                     <td className="p-2">{log.risultato}</td>
+                                                    <td className="p-2 font-mono text-xs">{log.winCode || '-'}</td>
                                                     <td className="p-2">
                                                         {log.vincita ? (
                                                             <span className="text-green-400 font-bold">✓ Win</span>
@@ -1002,6 +1064,15 @@ const BackendScreen: React.FC<BackendScreenProps> = ({ onLogout }) => {
                             <div className="text-gray-400 text-sm">
                                 Pending: {pendingRequestsCount}
                             </div>
+                        </div>
+
+                        <div className="flex justify-end mb-4">
+                            <button
+                                onClick={() => downloadCSV(requests, 'requests.csv')}
+                                className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded font-bold"
+                            >
+                                Export CSV
+                            </button>
                         </div>
 
                         <div className="overflow-x-auto">

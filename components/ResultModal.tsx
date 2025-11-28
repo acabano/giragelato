@@ -10,9 +10,10 @@ interface ResultModalProps {
     username?: string;
     date?: string;
     time?: string;
+    winCode?: string;
 }
 
-const ResultModal: React.FC<ResultModalProps> = ({ isOpen, onClose, prize, resultImage, username, date, time }) => {
+const ResultModal: React.FC<ResultModalProps> = ({ isOpen, onClose, prize, resultImage, username, date, time, winCode }) => {
     if (!isOpen) return null;
 
     return (
@@ -60,6 +61,12 @@ const ResultModal: React.FC<ResultModalProps> = ({ isOpen, onClose, prize, resul
                                 <span className="text-gray-400 font-semibold">Result:</span>
                                 <span className="text-yellow-300 font-bold">{prize.premio}</span>
                             </div>
+                            {winCode && (
+                                <div className="flex justify-between border-t border-gray-700 pt-2 mt-2">
+                                    <span className="text-gray-400 font-semibold">Codice Vincita:</span>
+                                    <span className="text-green-400 font-bold font-mono tracking-wider">{winCode}</span>
+                                </div>
+                            )}
                         </div>
 
                         <p className="text-sm text-gray-400 mb-4">

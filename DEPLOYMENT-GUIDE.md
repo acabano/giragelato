@@ -7,18 +7,15 @@
 - [ ] Credenziali EmailJS configurate
 - [ ] Node.js e npm installati localmente
 
----
-
 ## 🔧 Passo 1: Build del Progetto
 
 1. **Apri il terminale** nella cartella del progetto
 
-2. **Esegui il build**:
+2. **Esegui il build per il cliente specifico** (es. giragelato):
    ```bash
-   npm run build
+   node create-release.js giragelato
    ```
-
-3. **Verifica** che la cartella `dist/` sia stata creata
+   Questo creerà una cartella `release/giragelato` pronta per l'upload.
 
 ---
 
