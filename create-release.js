@@ -25,6 +25,7 @@ const distDir = path.join(__dirname, 'dist');
 const apiDir = path.join(__dirname, 'api');
 const dataDir = path.join(__dirname, 'data');
 const imageDir = path.join(__dirname, 'Image');
+const legalDir = path.join(__dirname, 'legal');
 
 console.log(`🚀 Starting release build for client: ${clientName}`);
 console.log(`📍 Base URL will be: ${baseUrl}`);
@@ -118,6 +119,26 @@ if (fs.existsSync(path.join(__dirname, '.htaccess'))) {
     fs.copyFileSync(path.join(__dirname, '.htaccess'), path.join(clientReleaseDir, '.htaccess'));
 } else {
     console.warn('⚠️ .htaccess not found!');
+}
+
+// Step 6b: Copy legal files
+console.log('⚖️  Copying legal files...');
+const releaseLegalDir = path.join(clientReleaseDir, 'legal');
+const clientSourceDir = path.join(__dirname, 'clients', clientName);
+const clientLegalDir = path.join(clientSourceDir, 'legal');
+
+// First, check for client-specific legal files
+if (fs.existsSync(clientLegalDir)) {
+    console.log(`  Found client-specific legal directory at ${clientLegalDir}`);
+    console.log(`  Copying to ${releaseLegalDir}...`);
+    copySync(clientLegalDir, releaseLegalDir);
+} else if (fs.existsSync(legalDir)) {
+    // Fallback to generic legal directory from project root
+    console.log(`  Found generic legal directory at ${legalDir}`);
+    console.log(`  Copying to ${releaseLegalDir}...`);
+    copySync(legalDir, releaseLegalDir);
+} else {
+    console.log(`  ⚠️  No legal directory found. Skipping.`);
 }
 
 // Step 7: Setup data directory

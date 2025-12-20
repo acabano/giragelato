@@ -1,0 +1,40 @@
+# --------------------------------------------------------------
+# 1️⃣  REWRITE – SPA routing + exception for data/ and api/
+# --------------------------------------------------------------
+<IfModule mod_rewrite.c>
+  RewriteEngine On
+  # No RewriteBase needed for portability
+
+  # ---- EXCLUDE data/ AND api/ FOLDERS ----
+  RewriteCond %{REQUEST_URI} /(data|api)/ [NC]
+  RewriteRule ^ - [L]
+
+  # Standard SPA Routing Rule
+  RewriteCond %{REQUEST_FILENAME} !-f
+  RewriteCond %{REQUEST_FILENAME} !-d
+  RewriteRule ^ index.html [L]
+</IfModule>
+
+# --------------------------------------------------------------
+# 2️⃣  PROTECT USERS JSON FILES ONLY
+# --------------------------------------------------------------
+# Block access to any users*.json file in any directory
+<FilesMatch "users.*\.json$">
+    <IfModule mod_authz_core.c>
+        Require all denied
+    </IfModule>
+    <IfModule !mod_authz_core.c>
+        Order allow,deny
+        Deny from all
+    </IfModule>
+</FilesMatch>
+
+# --------------------------------------------------------------
+# 4️⃣  CACHE CONTROL
+# --------------------------------------------------------------
+<IfModule mod_expires.c>
+  ExpiresActive On
+  ExpiresByType image/png "access plus 1 year"
+  ExpiresByType text/css "access plus 1 month"
+  ExpiresByType application/javascript "access plus 1 month"
+</IfModule>

@@ -3,6 +3,7 @@ import { User, GameConfig, UserRequest } from '../types';
 import * as userService from '../services/userService';
 import emailjs from '@emailjs/browser';
 import { buildUrl } from '../utils/paths';
+import PrivacyModal from './PrivacyModal';
 
 interface LoginScreenProps {
     onLoginSuccess: (user: User) => void;
@@ -23,8 +24,10 @@ const LoginScreen: React.FC<LoginScreenProps> = ({ onLoginSuccess }) => {
     const [regEmail, setRegEmail] = useState('');
     const [regTelefono, setRegTelefono] = useState('');
     const [regCitta, setRegCitta] = useState('');
+    const [gdprConsent, setGdprConsent] = useState(false);
 
     const [backgroundImage, setBackgroundImage] = useState<string | null>(null);
+    const [showPrivacyModal, setShowPrivacyModal] = useState(false);
 
     useEffect(() => {
         const checkBackgroundImage = () => {
@@ -198,6 +201,11 @@ const LoginScreen: React.FC<LoginScreenProps> = ({ onLoginSuccess }) => {
             return;
         }
 
+        if (!gdprConsent) {
+            setError('Devi accettare il trattamento dei dati personali per registrarti.');
+            return;
+        }
+
         try {
             // Load existing requests
             const timestamp = new Date().getTime();
@@ -215,7 +223,9 @@ const LoginScreen: React.FC<LoginScreenProps> = ({ onLoginSuccess }) => {
                 telefono: regTelefono,
                 citta: regCitta,
                 creato: false,
-                dataRichiesta: new Date().toISOString()
+                dataRichiesta: new Date().toISOString(),
+                gdprConsent: gdprConsent,
+                gdprConsentDate: new Date().toISOString()
             };
 
             // Add to requests array
@@ -465,6 +475,27 @@ const LoginScreen: React.FC<LoginScreenProps> = ({ onLoginSuccess }) => {
                                 required
                             />
                         </div>
+                        <div className="mb-4">
+                            <label className="flex items-start gap-2 cursor-pointer">
+                                <input
+                                    type="checkbox"
+                                    checked={gdprConsent}
+                                    onChange={(e) => setGdprConsent(e.target.checked)}
+                                    className="mt-1 w-4 h-4 accent-purple-500"
+                                />
+                                <span className="text-xs text-gray-300">
+                                    Dichiaro di aver letto l'
+                                    <button
+                                        type="button"
+                                        onClick={() => setShowPrivacyModal(true)}
+                                        className="text-purple-400 hover:text-purple-300 underline ml-1 mr-1 bg-transparent border-none p-0 cursor-pointer inline"
+                                    >
+                                        Informativa Privacy
+                                    </button>
+                                    e acconsento al trattamento dei miei dati personali per le finalità legate alla partecipazione al gioco a premi, in conformità con il GDPR.
+                                </span>
+                            </label>
+                        </div>
                         {error && <p className="text-red-500 text-xs italic mb-4 text-center">{error}</p>}
                         {success && <p className="text-green-500 text-xs italic mb-4 text-center">{success}</p>}
                         <button
@@ -490,13 +521,23 @@ const LoginScreen: React.FC<LoginScreenProps> = ({ onLoginSuccess }) => {
 
             <div className="mt-8 text-center">
                 <p className="text-gray-600 text-xs">Versione 1.0</p>
-                <p className="text-gray-500 text-sm mt-1 font-medium italic">
-                    Gioco ideato con passione da Andrea Cabano
-                </p>
+                <p className="text-gray-500 text-sm mt-1 font-medium italic">Gioco ideato con passione da Andrea Cabano</p>
+                <div className="mt-2">
+                    <button
+                        onClick={() => setShowPrivacyModal(true)}
+                        className="text-xs text-gray-500 hover:text-gray-300 underline transition-colors bg-transparent border-none cursor-pointer"
+                    >
+                        Informativa Privacy e Probabilità di Vincita
+                    </button>
+                </div>
             </div>
+            <PrivacyModal
+                isOpen={showPrivacyModal}
+                onClose={() => setShowPrivacyModal(false)}
+                config={config}
+            />
         </div>
     );
 };
-
 
 export default LoginScreen;

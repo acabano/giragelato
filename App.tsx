@@ -3,6 +3,7 @@ import React, { useState, useEffect } from 'react';
 import LoginScreen from './components/LoginScreen';
 import GameScreen from './components/GameScreen';
 import BackendScreen from './components/BackendScreen';
+import LegalScreen from './components/LegalScreen';
 import { User } from './types';
 import * as userService from './services/userService';
 import Spinner from './components/Spinner';
@@ -54,6 +55,17 @@ const App: React.FC = () => {
 
     // Show overlay only if game is inactive AND user is logged in AND user is NOT admin
     const showOverlay = !isGameActive && currentUser && currentUser.role !== 'admin';
+
+    // Simple URL routing
+    const path = window.location.pathname;
+    // Check if path matches /legal, accounting for the base URL
+    // We remove trailing slashes for consistency
+    const cleanPath = path.endsWith('/') ? path.slice(0, -1) : path;
+    const legalPath = buildUrl('legal').endsWith('/') ? buildUrl('legal').slice(0, -1) : buildUrl('legal');
+
+    if (cleanPath === legalPath) {
+        return <LegalScreen />;
+    }
 
     return (
         <>

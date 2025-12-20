@@ -5,6 +5,7 @@ import { buildUrl } from '../utils/paths';
 import Wheel from './Wheel';
 import Spinner from './Spinner';
 import ResultModal from './ResultModal';
+import PrivacyModal from './PrivacyModal';
 
 interface GameScreenProps {
     user: User;
@@ -29,6 +30,12 @@ const GameScreen: React.FC<GameScreenProps> = ({ user, onLogout }) => {
     const [showPasswordModal, setShowPasswordModal] = useState(false);
     const [newPassword, setNewPassword] = useState('');
     const [passwordMessage, setPasswordMessage] = useState<{ text: string; type: 'success' | 'error' } | null>(null);
+
+    // Account Details State
+    const [showAccountModal, setShowAccountModal] = useState(false);
+
+    const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+    const [showPrivacyModal, setShowPrivacyModal] = useState(false);
 
     // Hamburger Menu State
     const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -91,6 +98,43 @@ const GameScreen: React.FC<GameScreenProps> = ({ user, onLogout }) => {
         } catch (error) {
             console.error(error);
             setPasswordMessage({ text: 'Errore durante l\'aggiornamento della password.', type: 'error' });
+        }
+    };
+
+    const handleDeleteAccount = async () => {
+        if (!showDeleteConfirm) {
+            setShowDeleteConfirm(true);
+            return;
+        }
+
+        try {
+            // Load current users
+            const timestamp = new Date().getTime();
+            const response = await fetch(buildUrl(`api/get-users.php?t=${timestamp}`), {
+                headers: { 'Cache-Control': 'no-cache' }
+            });
+            if (!response.ok) throw new Error('Failed to load users');
+
+            const users: User[] = await response.json();
+
+            // Filter out current user
+            const updatedUsers = users.filter(u => u.user !== user.user);
+
+            // Save updated users
+            const saveResponse = await fetch(buildUrl(`api/save-users.php`), {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(updatedUsers, null, 4)
+            });
+
+            if (saveResponse.ok) {
+                onLogout();
+            } else {
+                throw new Error('Failed to delete account');
+            }
+        } catch (error) {
+            console.error(error);
+            alert('Errore durante l\'eliminazione dell\'account.');
         }
     };
 
@@ -321,6 +365,30 @@ const GameScreen: React.FC<GameScreenProps> = ({ user, onLogout }) => {
                         <button
                             onClick={() => {
                                 setIsMenuOpen(false);
+                                setShowAccountModal(true);
+                            }}
+                            className="w-full text-left px-4 py-3 text-sm text-gray-200 hover:bg-gray-700 hover:text-white transition-colors flex items-center gap-2"
+                        >
+                            <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                            </svg>
+                            Dettagli Account
+                        </button>
+                        <button
+                            onClick={() => {
+                                setIsMenuOpen(false);
+                                setShowPrivacyModal(true);
+                            }}
+                            className="w-full text-left px-4 py-3 text-sm text-gray-200 hover:bg-gray-700 hover:text-white transition-colors flex items-center gap-2"
+                        >
+                            <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.1414.586l4 4a1 1 0 01.586 1.414V19a2 2 0 01-2 2z" />
+                            </svg>
+                            Note Legali
+                        </button>
+                        <button
+                            onClick={() => {
+                                setIsMenuOpen(false);
                                 setShowPasswordModal(true);
                             }}
                             className="w-full text-left px-4 py-3 text-sm text-gray-200 hover:bg-gray-700 hover:text-white transition-colors flex items-center gap-2"
@@ -392,6 +460,61 @@ const GameScreen: React.FC<GameScreenProps> = ({ user, onLogout }) => {
                 </div>
             )}
 
+            {/* Account Details Modal */}
+            {showAccountModal && (
+                <div className="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-50 p-4">
+                    <div className="bg-gray-800 rounded-lg p-6 max-w-sm w-full border border-gray-700 shadow-2xl">
+                        <h2 className="text-xl font-bold mb-4 text-white">Dettagli Account</h2>
+                        <div className="space-y-3 mb-6 text-gray-300 text-sm">
+                            <p><strong className="text-gray-400">Username:</strong> {user.user}</p>
+                            <p><strong className="text-gray-400">Nome:</strong> {user.nome || '-'}</p>
+                            <p><strong className="text-gray-400">Cognome:</strong> {user.cognome || '-'}</p>
+                            <p><strong className="text-gray-400">Email:</strong> {user.email || '-'}</p>
+                            <p><strong className="text-gray-400">Telefono:</strong> {user.telefono || '-'}</p>
+                            <p><strong className="text-gray-400">Città:</strong> {user.citta || '-'}</p>
+                            <p><strong className="text-gray-400">Consenso GDPR:</strong> {user.gdprConsent ? 'Sì' : 'No'}</p>
+                        </div>
+
+                        {!showDeleteConfirm ? (
+                            <div className="flex flex-col gap-2">
+                                <button
+                                    onClick={() => setShowAccountModal(false)}
+                                    className="w-full px-4 py-2 bg-gray-700 hover:bg-gray-600 text-white rounded transition-colors"
+                                >
+                                    Chiudi
+                                </button>
+                                <button
+                                    onClick={() => setShowDeleteConfirm(true)}
+                                    className="w-full px-4 py-2 bg-red-900/50 hover:bg-red-900/80 text-red-200 rounded transition-colors text-sm"
+                                >
+                                    Elimina Account
+                                </button>
+                            </div>
+                        ) : (
+                            <div className="bg-red-900/20 p-4 rounded border border-red-900/50">
+                                <p className="text-red-200 text-sm mb-4 font-bold">
+                                    Sei sicuro? Questa azione è irreversibile e cancellerà tutti i tuoi dati e le tue vincite.
+                                </p>
+                                <div className="flex gap-2">
+                                    <button
+                                        onClick={() => setShowDeleteConfirm(false)}
+                                        className="flex-1 px-3 py-2 bg-gray-700 hover:bg-gray-600 text-white rounded text-sm"
+                                    >
+                                        Annulla
+                                    </button>
+                                    <button
+                                        onClick={handleDeleteAccount}
+                                        className="flex-1 px-3 py-2 bg-red-600 hover:bg-red-700 text-white rounded font-bold text-sm"
+                                    >
+                                        Conferma
+                                    </button>
+                                </div>
+                            </div>
+                        )}
+                    </div>
+                </div>
+            )}
+
             <header className="text-center mb-8">
                 <h1 className="text-4xl md:text-6xl font-bold tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-pink-600">
                     {config.nomeDellaRuota}
@@ -432,6 +555,11 @@ const GameScreen: React.FC<GameScreenProps> = ({ user, onLogout }) => {
                     winCode={winCode || undefined}
                 />
             )}
+            <PrivacyModal
+                isOpen={showPrivacyModal}
+                onClose={() => setShowPrivacyModal(false)}
+                config={config}
+            />
         </div>
     );
 };

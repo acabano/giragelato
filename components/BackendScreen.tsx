@@ -317,6 +317,12 @@ const BackendScreen: React.FC<BackendScreenProps> = ({ onLogout }) => {
             password: password,
             role: 'user',
             email: request.email, // Save email for password recovery
+            nome: request.nome,
+            cognome: request.cognome,
+            telefono: request.telefono,
+            citta: request.citta,
+            gdprConsent: request.gdprConsent,
+            gdprConsentDate: request.gdprConsentDate,
             history: []
         };
 

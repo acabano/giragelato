@@ -8,6 +8,14 @@
   # ---- EXCLUDE data/ AND api/ FOLDERS ----
   RewriteCond %{REQUEST_URI} /(data|api)/ [NC]
   RewriteRule ^ - [L]
+  
+  # ---- ALLOW ACCESS TO .txt FILES IN legal/ FOLDER ----
+  RewriteCond %{REQUEST_URI} /legal/.+\.txt$ [NC]
+  RewriteRule ^ - [L]
+  
+  # ---- HANDLE /legal ROUTE FOR SPA (before directory check) ----
+  RewriteCond %{REQUEST_URI} ^.*/legal/?$ [NC]
+  RewriteRule ^ index.html [L]
 
   # Standard SPA Routing Rule
   RewriteCond %{REQUEST_FILENAME} !-f
